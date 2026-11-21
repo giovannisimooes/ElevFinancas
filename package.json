@@ -1,0 +1,21 @@
+{
+  "name": "elev-finance",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ELEV FINANCE — controle financeiro pessoal e empresarial",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "tsx test/engine.test.ts"
+  },
+  "dependencies": {
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-icons": "5.7.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "tsx": "4.23.12",
+    "typescript": "6.0.3"
+  }
+}

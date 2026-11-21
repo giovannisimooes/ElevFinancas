@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+# backups com dados financeiros não devem ir para o repositório
+elev-finance-backup-*.json
+*receitas*.json
