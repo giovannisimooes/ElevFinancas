@@ -114,7 +114,12 @@ export interface Settings {
   expenseCategories: string[];
   methods: string[];
   defaultProfile: ProfileView;
+  layout?: LayoutSettings;
 }
+
+export interface NavItemCfg { id: string; label?: string; hidden?: boolean }
+export interface DashBlockCfg { id: string; span: number; height?: "sm" | "md" | "lg"; hidden?: boolean }
+export interface LayoutSettings { nav?: NavItemCfg[]; dash?: DashBlockCfg[] }
 
 export interface TrashItem { id: string; kind: string; deletedAt: string; record: any; label: string }
 

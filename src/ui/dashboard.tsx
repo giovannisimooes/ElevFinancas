@@ -4,6 +4,7 @@ import { useApp } from "./state";
 import { Button, Empty, Progress, Amount, StatusBadge, cls, Segmented } from "./components";
 import { BarChart, Donut } from "./charts";
 import { ItemTable, TypeIcon } from "./table";
+import { LayoutGrid, useBlockScale } from "./layout";
 import { monthMetrics, byCategory, matchesProfile, goalProgress, isPayable, CREDIT, dueState } from "../core/engine";
 import { addMonths, monthShort, monthLabel, formatDateShort, daysBetween, addDays, monthOf, formatDateBR, dateInMonth } from "../core/dates";
 import { formatBRL, formatPct } from "../core/money";
@@ -70,6 +71,9 @@ export function Dashboard() {
           </div>
         </div>
       )}
+      <LayoutGrid
+        blocks={{
+    kpis: (
       <div className="kpis">
         <Kpi icon={<LuWallet />} tone="p" label={isPast ? `Saldo em ${monthShort(month)}` : "Saldo em conta"} value={formatBRL(isPast ? m.balanceEndOfMonth : m.balanceNow)}
           foot={<>{!isPast && <Sub k="Previsto no fim do mês" v={formatBRL(m.projectedEnd)} tone={m.projectedEnd < 0 ? "neg" : ""} />}{reserved > 0 && <Sub k="Reservado em metas" v={formatBRL(reserved)} />}</>}>
@@ -89,38 +93,44 @@ export function Dashboard() {
         </Kpi>
         <GoalKpi goal={monthGoal} resultOf={(g) => monthMetrics(data, items, g.profile, month, today).resultRealized} />
       </div>
-
-      {m.overdueCount > 0 && (
-        <div className="alert" role="alert"><LuTriangleAlert /> <span><b>{m.overdueCount} {m.overdueCount === 1 ? "conta atrasada" : "contas atrasadas"}</b> somando {formatBRL(m.overdueCents)}.</span>
-          <button className="link" onClick={() => { location.hash = "#calendario"; }}>Ver no calendário</button></div>
-      )}
-
-      <div className="grid-dash">
-        <Panel title="Receitas x Despesas" icon={<LuReceipt />} className="span-7" action={<span className="muted small">últimos 6 meses</span>}>
+    ),
+    revexp: (
+        <Panel title="Receitas x Despesas" icon={<LuReceipt />} action={<span className="muted small">últimos 6 meses</span>}>
           <BarChart labels={months6.map(monthShort)} series={[
             { name: "Receitas", color: colors[0], values: series6.map((s) => s.incomeTotal) },
             { name: "Despesas", color: colors[4] || "#EF4444", values: series6.map((s) => s.expenseTotal) },
           ]} />
         </Panel>
-        <Panel title="Despesas por categoria" className="span-5" action={<span className="muted small">{monthLabel(month)}</span>}>
+    ),
+    expcat: (
+        <Panel title="Despesas por categoria" action={<span className="muted small">{monthLabel(month)}</span>}>
           <Donut data={expCat} colors={colors} emptyText="Nenhuma despesa neste mês" />
         </Panel>
-        <Panel title="Comparativo mensal" className="span-4" action={<span className="muted small">{monthShort(addMonths(month, -1))} x {monthShort(month)}</span>}>
+    ),
+    compare: (
+        <Panel title="Comparativo mensal" action={<span className="muted small">{monthShort(addMonths(month, -1))} x {monthShort(month)}</span>}>
           <BarChart height={200} signed labels={["Receitas", "Despesas", "Resultado"]} series={[
             { name: monthShort(addMonths(month, -1)), color: "var(--muted-bar)", values: [prev.incomeTotal, prev.expenseTotal, prev.resultForecast] },
             { name: monthShort(month), color: colors[0], values: [m.incomeTotal, m.expenseTotal, m.resultForecast] },
           ]} />
           <CompareLine a={prev.expenseTotal} b={m.expenseTotal} label="Despesas" invert />
         </Panel>
-        <Panel title="Receitas por categoria" className="span-4">
+    ),
+    inccat: (
+        <Panel title="Receitas por categoria">
           <Donut data={incCat} colors={[colors[0], ...colors.slice(1)]} emptyText="Nenhuma receita neste mês" size={140} />
         </Panel>
-        <Panel title="Próximos vencimentos" icon={<LuCalendarDays />} className="span-4" action={<button className="link small" onClick={() => { location.hash = "#calendario"; }}>Calendário</button>}>
+    ),
+    upcoming: (
+        <Panel title="Próximos vencimentos" icon={<LuCalendarDays />} action={<button className="link small" onClick={() => { location.hash = "#calendario"; }}>Calendário</button>}>
           <Upcoming list={upcoming} />
         </Panel>
-      </div>
-
-      <BottomTabs />
+    ),
+    tabs: <BottomTabs />,
+        }}
+        after={{ kpis: m.overdueCount > 0 ? <div className="block span-12"><div className="alert" role="alert"><LuTriangleAlert /> <span><b>{m.overdueCount} {m.overdueCount === 1 ? "conta atrasada" : "contas atrasadas"}</b> somando {formatBRL(m.overdueCents)}.</span>
+          <button className="link" onClick={() => { location.hash = "#calendario"; }}>Ver no calendário</button></div></div> : null }}
+      />
     </div>
   );
 }
@@ -151,10 +161,11 @@ function GoalKpi({ goal, resultOf }: { goal?: Goal; resultOf: (g: Goal) => numbe
 
 function Upcoming({ list }: { list: Item[] }) {
   const { open, today } = useApp();
+  const max = Math.max(3, Math.round(7 * useBlockScale()));
   if (!list.length) return <Empty icon={<LuCheck />} title="Nada vencendo" text="Sem contas pendentes nos próximos 30 dias." />;
   return (
     <ul className="upcoming">
-      {list.slice(0, 7).map((it) => {
+      {list.slice(0, max).map((it) => {
         const st = dueState(it, today);
         const days = daysBetween(today, it.date);
         return (
@@ -168,7 +179,7 @@ function Upcoming({ list }: { list: Item[] }) {
           </li>
         );
       })}
-      {list.length > 7 && <li className="muted small center">+ {list.length - 7} vencimentos</li>}
+      {list.length > max && <li className="muted small center">+ {list.length - max} vencimentos</li>}
     </ul>
   );
 }

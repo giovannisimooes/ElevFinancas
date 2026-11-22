@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useBlockScale } from "./layout";
 
 function useWidth(def = 640): [React.RefObject<HTMLDivElement | null>, number] {
   const ref = useRef<HTMLDivElement>(null);
@@ -44,7 +45,8 @@ function Dot({ c }: { c: string }) { return <i className="dot" style={{ backgrou
 export interface Series { name: string; color: string; values: number[] }
 
 /** Barras agrupadas (ex.: receitas x despesas por mês). Valores em centavos. */
-export function BarChart({ labels, series, height = 220, signed }: { labels: string[]; series: Series[]; height?: number; signed?: boolean }) {
+export function BarChart({ labels, series, height: h0 = 220, signed }: { labels: string[]; series: Series[]; height?: number; signed?: boolean }) {
+  const height = Math.round(h0 * useBlockScale());
   const { data } = useApp();
   const st = data.settings.chartStyle;
   const [tip, setTip] = useState<Tip | null>(null);
@@ -93,7 +95,8 @@ export function BarChart({ labels, series, height = 220, signed }: { labels: str
 }
 
 /** Linhas (evolução de saldo, fluxo previsto). */
-export function LineChart({ labels, series, height = 220, dashedFrom }: { labels: string[]; series: Series[]; height?: number; dashedFrom?: number }) {
+export function LineChart({ labels, series, height: h0 = 220, dashedFrom }: { labels: string[]; series: Series[]; height?: number; dashedFrom?: number }) {
+  const height = Math.round(h0 * useBlockScale());
   const { data } = useApp();
   const st = data.settings.chartStyle;
   const [tip, setTip] = useState<Tip | null>(null);
@@ -135,7 +138,8 @@ export function LineChart({ labels, series, height = 220, dashedFrom }: { labels
 }
 
 /** Rosca/pizza por categoria com legenda. */
-export function Donut({ data: rows, colors, emptyText = "Sem dados no período", size = 168 }: { data: { name: string; cents: number }[]; colors: string[]; emptyText?: string; size?: number }) {
+export function Donut({ data: rows, colors, emptyText = "Sem dados no período", size: s0 = 168 }: { data: { name: string; cents: number }[]; colors: string[]; emptyText?: string; size?: number }) {
+  const size = Math.round(s0 * useBlockScale());
   const { data } = useApp();
   const donut = data.settings.chartStyle.donut;
   const [hover, setHover] = useState<number | null>(null);

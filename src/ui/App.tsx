@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { LuSettings, LuPlus, LuChevronLeft, LuChevronRight, LuCloud, LuHardDrive, LuLoader, LuTriangleAlert, LuCloudOff, LuLayoutDashboard, LuListOrdered, LuRepeat, LuLayers, LuCreditCard, LuTarget, LuCalendarDays, LuChartPie, LuSun, LuMoon, LuFlaskConical, LuCheck } from "./icons";
+import { LuSettings, LuPlus, LuChevronLeft, LuChevronRight, LuCloud, LuHardDrive, LuLoader, LuTriangleAlert, LuCloudOff, LuLayoutDashboard, LuListOrdered, LuRepeat, LuLayers, LuCreditCard, LuTarget, LuCalendarDays, LuChartPie, LuLayoutGrid, LuTrendingUp, LuTrendingDown, LuSun, LuMoon, LuFlaskConical, LuCheck } from "./icons";
 import { AppProvider, useApp } from "./state";
 import { Button, Segmented, Toasts, cls } from "./components";
 import { ModalHost } from "./forms";
@@ -7,11 +7,15 @@ import { Dashboard } from "./dashboard";
 import { HistoryPage, RecurringPage, InstallmentsPage, CardsPage, GoalsPage } from "./pages";
 import { CalendarPage } from "./calendar";
 import { ReportsPage } from "./reports";
+import { FlowPage } from "./flows";
+import { NavEditor, EditLayoutBar, resolveNav } from "./layout";
 import { mergeData } from "../core/storage";
 import { addMonths, monthLabel, monthOf, MONTH_NAMES, makeMonth, monthParts } from "../core/dates";
 
 const ROUTES = [
   { id: "dashboard", label: "Dashboard", icon: <LuLayoutDashboard /> },
+  { id: "entradas", label: "Entradas", icon: <LuTrendingUp /> },
+  { id: "saidas", label: "Saídas", icon: <LuTrendingDown /> },
   { id: "lancamentos", label: "Lançamentos", icon: <LuListOrdered /> },
   { id: "fixas", label: "Contas fixas", icon: <LuRepeat /> },
   { id: "parcelamentos", label: "Parcelamentos", icon: <LuLayers /> },
@@ -92,7 +96,7 @@ function SaveChip() {
 }
 
 function Header() {
-  const { view, setView, open, data, update } = useApp();
+  const { view, setView, open, data, update, editLayout, setEditLayout } = useApp();
   const dark = data.settings.theme === "dark";
   return (
     <header className="topbar">
@@ -107,6 +111,7 @@ function Header() {
       <div className="topbar-right">
         <SaveChip />
         <Button variant="ghost" icon={dark ? <LuSun /> : <LuMoon />} aria-label="Alternar tema" title="Alternar tema claro/escuro" onClick={() => update((d) => ({ ...d, settings: { ...d.settings, theme: dark ? "light" : "dark" } }))} />
+        <Button variant="ghost" icon={<LuLayoutGrid />} aria-label="Editar layout" title="Editar layout" className={cls(editLayout && "btn-active")} onClick={() => setEditLayout(!editLayout)} />
         <Button variant="ghost" icon={<LuSettings />} aria-label="Configurações" title="Configurações" onClick={() => open({ kind: "settings" })} />
         <Button variant="primary" icon={<LuPlus />} className="new-btn" onClick={() => open({ kind: "new" })}>NOVO LANÇAMENTO</Button>
       </div>
@@ -115,9 +120,12 @@ function Header() {
 }
 
 function Nav({ route }: { route: Route }) {
+  const { data, editLayout } = useApp();
+  if (editLayout) return <NavEditor routes={ROUTES} />;
+  const list = resolveNav(ROUTES, data.settings.layout).filter((r) => !r.hidden || r.id === route);
   return (
     <nav className="nav" aria-label="Seções">
-      {ROUTES.map((r) => <a key={r.id} href={`#${r.id}`} className={cls(route === r.id && "on")}>{r.icon}<span>{r.label}</span></a>)}
+      {list.map((r) => <a key={r.id} href={`#${r.id}`} className={cls(route === r.id && "on")}>{r.icon}<span>{r.label}</span></a>)}
     </nav>
   );
 }
@@ -146,13 +154,14 @@ function Shell() {
     <div className="app">
       <Header />
       <Nav route={route} />
+      <EditLayoutBar onDashboard={route === "dashboard"} />
       {demo && <div className="demo-bar"><LuFlaskConical /> Modo demonstração: dados de exemplo, isolados e não salvos. <button className="link" onClick={() => setDemo(false)}>Sair</button></div>}
       {status.mode === "local" && !demo && <div className="info-bar"><LuHardDrive /> Salvando apenas neste navegador. Para ter os mesmos dados no computador, notebook e celular, conecte ao GitHub. <button className="link" onClick={() => open({ kind: "settings", tab: "dados" })}>Conectar</button></div>}
       <LocalMigrationBar />
       {status.mode === "memory" && <div className="info-bar danger"><LuTriangleAlert /> Nenhum armazenamento disponível: os dados serão perdidos ao fechar. Exporte um backup.</div>}
       <main className="main" key={route}>
         {!ready ? <div className="loading"><LuLoader className="spin" /> <span>Carregando seus dados com segurança…</span></div> :
-          route === "dashboard" ? <Dashboard /> : route === "lancamentos" ? <HistoryPage /> : route === "fixas" ? <RecurringPage /> :
+          route === "dashboard" ? <Dashboard /> : route === "entradas" ? <FlowPage kind="income" /> : route === "saidas" ? <FlowPage kind="expense" /> : route === "lancamentos" ? <HistoryPage /> : route === "fixas" ? <RecurringPage /> :
           route === "parcelamentos" ? <InstallmentsPage /> : route === "cartoes" ? <CardsPage /> : route === "metas" ? <GoalsPage /> :
           route === "calendario" ? <CalendarPage /> : <ReportsPage />}
       </main>

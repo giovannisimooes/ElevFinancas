@@ -39,6 +39,7 @@ interface Ctx {
   modals: ModalSpec[]; open: (m: ModalSpec) => void; close: () => void;
   toasts: Toast[]; toast: (text: string, tone?: Toast["tone"], undo?: boolean) => void;
   minMonth: MonthKey;
+  editLayout: boolean; setEditLayout: (v: boolean) => void;
 }
 
 const C = createContext<Ctx>(null as unknown as Ctx);
@@ -53,6 +54,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [today, setToday] = useState(todayISO());
   const [month, setMonth] = useState<MonthKey>(monthOf(todayISO()));
   const [modals, setModals] = useState<ModalSpec[]>([]);
+  const [editLayout, setEditLayout] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const history = useRef<Change[][]>([]);
   const [canUndo, setCanUndo] = useState(false);
@@ -149,7 +151,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const value: Ctx = {
     ready, data, items, view, setView, month, setMonth, today, status, demo, setDemo, store: storeRef.current,
-    update, replaceAll, undo, canUndo, modals, open, close, toasts, toast, minMonth,
+    update, replaceAll, undo, canUndo, modals, open, close, toasts, toast, minMonth, editLayout, setEditLayout,
   };
   return <C.Provider value={value}>{children}</C.Provider>;
 }
