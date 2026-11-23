@@ -2,7 +2,8 @@ import React, { useMemo, useState } from "react";
 import { LuSearch, LuPlus, LuRepeat, LuLayers, LuCreditCard, LuTarget, LuCheck, LuUndo2, LuPencil, LuTrash2, LuChevronDown, LuChevronRight, LuPiggyBank, LuListOrdered, LuEye } from "./icons";
 import { useApp, ops } from "./state";
 import { Button, Empty, Progress, Segmented, Select, StatusBadge, Amount, cls, KV, ProfileTag } from "./components";
-import { ItemTable } from "./table";
+import { ItemTable, statusRank } from "./table";
+import { useListSort, sortList } from "./sort";
 import { Panel, GoalsGrid } from "./dashboard";
 import { matchesProfile, dueState, planSummary, valueAt, goalProgress, CREDIT, monthMetrics } from "../core/engine";
 import { addMonths, monthOf, monthLabel, formatDateBR, lastDay, dateInMonth, monthShort, todayISO } from "../core/dates";
@@ -68,7 +69,11 @@ export function RecurringPage() {
   const [filter, setFilter] = useState<"all" | "paid" | "pending" | "overdue" | "soon">("all");
   const recs = Object.values(data.recurring).filter((r) => matchesProfile(r, view)).sort((a, b) => a.kind.localeCompare(b.kind) || a.dueDay - b.dueDay);
   const occOf = (id: string) => items.find((i) => i.source === "rec" && i.refId === id && i.occ === month);
-  const occs = recs.map((r) => ({ r, it: occOf(r.id) }));
+  const ls = useListSort();
+  const occs = sortList(recs.map((r) => ({ r, it: occOf(r.id) })), ls, {
+    date: (o) => o.it?.date || String(o.r.dueDay).padStart(2, "0"), alpha: (o) => o.r.description, amount: (o) => o.it?.amountCents ?? valueAt(o.r, month),
+    category: (o) => o.r.category, type: (o) => (o.r.kind === "income" ? 0 : 1), status: (o) => (o.it ? statusRank(o.it, today) : 4),
+  });
   const count = (st: string) => occs.filter(({ it }) => it && it.type === "expense" && (st === "pending" ? it.status === "pending" : dueState(it, today) === st)).length;
   const shown = occs.filter(({ it }) => filter === "all" || (it && (filter === "pending" ? it.status === "pending" : dueState(it, today) === filter)));
   const totalMonth = occs.filter(({ it }) => it?.type === "expense").reduce((s, { it }) => s + (it?.amountCents || 0), 0);
@@ -115,7 +120,8 @@ export function RecurringPage() {
 
 // ---------------- Parcelamentos ----------------
 export function InstallmentsPage() {
-  const { data, items, view, month, open } = useApp();
+  const { data, items, view, month, open, today } = useApp();
+  const ls = useListSort();
   const plans = Object.values(data.installments).filter((p) => matchesProfile(p, view));
   const sums = plans.map((p) => ({ p, s: planSummary(items, p, month) }));
   const active = sums.filter(({ s }) => s.remainingCount > 0);
@@ -133,7 +139,10 @@ export function InstallmentsPage() {
         <div className="stat-chip static"><span>Quitados</span><strong>{sums.length - active.length}</strong></div>
       </div>
       {!plans.length ? <section className="panel"><Empty icon={<LuLayers />} title="Nenhum parcelamento" text="Cadastre compras e dívidas parceladas para acompanhar parcelas, saldo devedor e quitação." action={<Button variant="soft" icon={<LuPlus />} onClick={() => open({ kind: "installment" })}>Cadastrar</Button>} /></section> :
-        <div className="plans">{sums.sort((a, b) => (a.s.remainingCount === 0 ? 1 : 0) - (b.s.remainingCount === 0 ? 1 : 0) || (a.s.nextDue?.date || "").localeCompare(b.s.nextDue?.date || "")).map(({ p }) => <PlanCard key={p.id} id={p.id} />)}</div>}
+        <div className="plans">{sortList(sums.sort((a, b) => (a.s.remainingCount === 0 ? 1 : 0) - (b.s.remainingCount === 0 ? 1 : 0) || (a.s.nextDue?.date || "").localeCompare(b.s.nextDue?.date || "")), ls, {
+          date: ({ s }) => s.nextDue?.date || s.payoffDate, alpha: ({ p }) => p.description, amount: ({ s }) => s.remainingCents, category: ({ p }) => p.category,
+          type: ({ p }) => (p.method === CREDIT ? 1 : 0), status: ({ s }) => (s.remainingCount === 0 ? 2 : s.nextDue && s.nextDue.date < today ? 0 : 1),
+        }).map(({ p }) => <PlanCard key={p.id} id={p.id} />)}</div>}
     </div>
   );
 }
@@ -191,7 +200,7 @@ function PlanCard({ id }: { id: string }) {
 // ---------------- Cartões ----------------
 export function CardsPage() {
   const { data, items, view, open } = useApp();
-  const cards = Object.values(data.cards).filter((c) => matchesProfile(c, view));
+  const cards = sortList(Object.values(data.cards).filter((c) => matchesProfile(c, view)), useListSort(), { alpha: (c) => c.name, date: (c) => String(c.dueDay).padStart(2, "0"), amount: (c) => c.limitCents || 0 });
   return (
     <div className="page">
       <div className="page-head"><div><h2>Cartões e faturas</h2><p className="muted small">Data da compra, competência da fatura e saída efetiva do dinheiro ficam separadas. A compra é a despesa; o pagamento da fatura é só a saída de caixa.</p></div>

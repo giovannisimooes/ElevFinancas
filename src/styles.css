@@ -634,3 +634,66 @@ a.btn { text-decoration: none; color: inherit; }
   .nav-editing .nav-edit-item { flex: 1 1 100%; }
   .nav-editing .nav-edit-item > span:not(.nav-edit-tools) { flex: 1; }
 }
+
+/* ---------- Calendário: mês, resumo do dia e totais ---------- */
+.cal-monthbar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 6px; width: fit-content; box-shadow: var(--shadow); }
+.cal-monthbar select { width: auto; min-width: 170px; font-weight: 700; text-align: center; }
+.cal-monthbar .btn { text-transform: capitalize; }
+.day-sum { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
+.day-sum div { background: var(--card2); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.day-sum span { font-size: 11.5px; color: var(--muted); }
+.day-sum b { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal-totals { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--gap); }
+.cal-total { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: var(--pad); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 8px; position: relative; overflow: hidden; }
+.cal-total::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--ck); }
+.cal-total.t-in { --ck: var(--pos); --cs: var(--pos-soft); } .cal-total.t-out { --ck: var(--neg); --cs: var(--neg-soft); }
+.cal-total.t-pos { --ck: var(--pos); --cs: var(--pos-soft); } .cal-total.t-neg { --ck: var(--neg); --cs: var(--neg-soft); }
+.cal-total.t-bal { --ck: var(--p); --cs: var(--p-soft); }
+.ct-top { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 13px; color: var(--text2); }
+.ct-icon { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: var(--cs); color: var(--ck); font-size: 17px; flex: none; }
+.cal-total strong { font-size: 24px; font-weight: 750; letter-spacing: -.02em; white-space: nowrap; }
+.ct-sub { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.ct-sub b { color: var(--text); }
+@media (max-width: 1100px) { .cal-totals { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .cal-totals { grid-template-columns: 1fr; } .cal-monthbar { width: 100%; } .cal-monthbar select { flex: 1; min-width: 0; } }
+
+/* ---------- Menu de ordenação ---------- */
+.sort-menu { position: relative; }
+.sort-pop { left: auto; right: 0; transform: none; width: 300px; display: flex; flex-direction: column; gap: 6px; animation: fade .16s ease; }
+.sort-pop ul { list-style: none; margin: 4px 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.sort-pop li { display: flex; align-items: center; gap: 4px; }
+.sort-opt { flex: 1; display: flex; align-items: center; gap: 10px; text-align: left; border: 0; background: transparent; padding: 7px 8px; border-radius: 9px; }
+.sort-opt:hover { background: var(--card2); }
+.sort-opt.on { background: var(--p-soft); }
+.sort-opt b { display: block; font-size: 13px; }
+.sort-opt small { display: block; font-size: 11.5px; color: var(--muted); }
+.sort-radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; font-size: 11px; flex: none; }
+.sort-opt.on .sort-radio { background: var(--p); border-color: var(--p); color: #fff; }
+.sort-dir { border: 1px solid var(--line); background: var(--card); width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; }
+.sort-dir:hover { border-color: var(--p); color: var(--p-strong); }
+@media (max-width: 820px) { .sort-pop { position: fixed; top: 70px; right: 12px; left: 12px; width: auto; } }
+.k-card { background: #EC4899; }
+.month-select { display: inline-flex; align-items: center; gap: 2px; background: var(--card2); border: 1px solid var(--line); border-radius: 10px; padding: 2px; }
+.month-select button { border: 0; background: transparent; width: 30px; height: 32px; border-radius: 8px; display: grid; place-items: center; color: var(--text2); }
+.month-select button:hover { background: var(--p-soft); color: var(--p-strong); }
+.month-select select { border: 0; background: transparent; width: auto; min-width: 150px; font-weight: 700; padding: 6px 4px; box-shadow: none !important; }
+@media (max-width: 820px) { .filters .month-select { flex: 1 1 100%; } .filters .month-select select { flex: 1; } }
+
+/* ---------- Contas vinculadas e importação ---------- */
+.acc-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.acc-list li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card2); flex-wrap: wrap; }
+.acc-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--info-soft); color: var(--info); display: grid; place-items: center; font-size: 18px; flex: none; }
+.acc-form { border: 1px dashed var(--p-soft2); border-radius: 12px; padding: 12px; }
+.import-sum { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin: 14px 0 8px; font-size: 13px; }
+.import-sum > span:first-child { display: inline-flex; gap: 6px; align-items: center; font-weight: 600; }
+.import-table { max-height: 48vh; overflow: auto; border: 1px solid var(--line); border-radius: 12px; }
+.import-table .table td { padding: 6px 8px; }
+.import-table input:not([type]), .import-table input[type="text"] { padding: 5px 8px; min-width: 180px; }
+.import-table select { padding: 5px 6px; min-width: 130px; font-size: 13px; }
+.import-table input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--p); }
+.import-table tr.excluded td { opacity: .5; }
+.import-table tr.excluded td:first-child { opacity: 1; }
+.import-table thead th { position: sticky; top: 0; z-index: 1; }
+.import-map { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.grid3b { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media (max-width: 820px) { .grid3b { grid-template-columns: 1fr; } }

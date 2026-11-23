@@ -1,11 +1,15 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useListSort } from "./sort";
 import { LuArrowUpRight, LuArrowDownRight, LuArrowLeftRight, LuCreditCard, LuChevronDown } from "./icons";
 import type { Item } from "../core/types";
 import { useApp } from "./state";
 import { Amount, ItemActions, ProfileTag, StatusBadge, cls, methodLabel } from "./components";
 import { formatDateBR } from "../core/dates";
 
-export type SortKey = "date" | "amount" | "category" | "description";
+export type SortKey = "date" | "amount" | "category" | "description" | "type" | "status";
+
+const TYPE_ORDER: Record<string, number> = { income: 0, expense: 1, invoice: 2, transfer: 3 };
+export function statusRank(it: Item, today: string): number { return it.status === "paid" ? 3 : it.isCredit ? 2 : it.date < today ? 0 : 1; }
 
 export function TypeIcon({ it }: { it: Item }) {
   if (it.type === "income") return <span className="ticon pos"><LuArrowUpRight /></span>;
@@ -15,9 +19,12 @@ export function TypeIcon({ it }: { it: Item }) {
 }
 
 export function ItemTable({ items, defaultSort = "date", defaultDir = "desc", pageSize = 50, empty, showProfile = true, compactCols }: { items: Item[]; defaultSort?: SortKey; defaultDir?: "asc" | "desc"; pageSize?: number; empty?: React.ReactNode; showProfile?: boolean; compactCols?: boolean }) {
-  const { data, open } = useApp();
-  const [sort, setSort] = useState<SortKey>(defaultSort);
-  const [dir, setDir] = useState<"asc" | "desc">(defaultDir);
+  const { data, open, today } = useApp();
+  const global = useListSort();
+  const gKey: SortKey | null = global ? (global.key === "alpha" ? "description" : global.key) : null;
+  const [sort, setSort] = useState<SortKey>(gKey || defaultSort);
+  const [dir, setDir] = useState<"asc" | "desc">(global?.dir || defaultDir);
+  useEffect(() => { setSort(gKey || defaultSort); setDir(global?.dir || defaultDir); }, [gKey, global?.dir]);
   const [limit, setLimit] = useState(pageSize);
   const sorted = useMemo(() => {
     const s = [...items];
@@ -27,11 +34,13 @@ export function ItemTable({ items, defaultSort = "date", defaultDir = "desc", pa
       if (sort === "date") r = a.date.localeCompare(b.date) || a.description.localeCompare(b.description);
       else if (sort === "amount") r = a.amountCents - b.amountCents;
       else if (sort === "category") r = a.category.localeCompare(b.category, "pt-BR") || a.date.localeCompare(b.date);
+      else if (sort === "type") r = (TYPE_ORDER[a.type] ?? 9) - (TYPE_ORDER[b.type] ?? 9) || b.date.localeCompare(a.date);
+      else if (sort === "status") r = statusRank(a, today) - statusRank(b, today) || a.date.localeCompare(b.date);
       else r = a.description.localeCompare(b.description, "pt-BR");
       return r * m;
     });
     return s;
-  }, [items, sort, dir]);
+  }, [items, sort, dir, today]);
   if (!items.length) return <>{empty}</>;
   const th = (k: SortKey, label: string, className?: string) => (
     <th className={cls("sortable", className, sort === k && "on")} onClick={() => { if (sort === k) setDir(dir === "asc" ? "desc" : "asc"); else { setSort(k); setDir(k === "date" || k === "amount" ? "desc" : "asc"); } }}>

@@ -5,6 +5,7 @@ import { Button, Empty, Progress, Amount, StatusBadge, cls, Segmented } from "./
 import { BarChart, Donut } from "./charts";
 import { ItemTable, TypeIcon } from "./table";
 import { LayoutGrid, useBlockScale } from "./layout";
+import { useListSort, sortList } from "./sort";
 import { monthMetrics, byCategory, matchesProfile, goalProgress, isPayable, CREDIT, dueState } from "../core/engine";
 import { addMonths, monthShort, monthLabel, formatDateShort, daysBetween, addDays, monthOf, formatDateBR, dateInMonth } from "../core/dates";
 import { formatBRL, formatPct } from "../core/money";
@@ -227,7 +228,10 @@ function BottomTabs() {
 
 export function GoalsGrid() {
   const { data, items, view, month, today, open } = useApp();
-  const goals = Object.values(data.goals).filter((g) => view === "geral" || g.profile === view);
+  const goals = sortList(Object.values(data.goals).filter((g) => view === "geral" || g.profile === view), useListSort(), {
+    alpha: (g) => g.name, date: (g) => g.deadline || "9999", amount: (g) => g.targetCents, category: (g) => g.category, type: (g) => (g.kind === "acumulo" ? 0 : 1),
+    status: (g) => goalProgress(g).progress,
+  });
   if (!goals.length) return <Empty icon={<LuTarget />} title="Nenhuma meta" text="Crie uma reserva ou uma meta de resultado mensal." action={<Button variant="soft" icon={<LuPlus />} onClick={() => open({ kind: "goal" })}>Nova meta</Button>} />;
   return (
     <div className="goals-grid">

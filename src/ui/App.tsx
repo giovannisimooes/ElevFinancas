@@ -9,6 +9,7 @@ import { CalendarPage } from "./calendar";
 import { ReportsPage } from "./reports";
 import { FlowPage } from "./flows";
 import { NavEditor, EditLayoutBar, resolveNav } from "./layout";
+import { SortMenu } from "./sort";
 import { mergeData } from "../core/storage";
 import { addMonths, monthLabel, monthOf, MONTH_NAMES, makeMonth, monthParts } from "../core/dates";
 
@@ -111,6 +112,7 @@ function Header() {
       <div className="topbar-right">
         <SaveChip />
         <Button variant="ghost" icon={dark ? <LuSun /> : <LuMoon />} aria-label="Alternar tema" title="Alternar tema claro/escuro" onClick={() => update((d) => ({ ...d, settings: { ...d.settings, theme: dark ? "light" : "dark" } }))} />
+        <SortMenu />
         <Button variant="ghost" icon={<LuLayoutGrid />} aria-label="Editar layout" title="Editar layout" className={cls(editLayout && "btn-active")} onClick={() => setEditLayout(!editLayout)} />
         <Button variant="ghost" icon={<LuSettings />} aria-label="Configurações" title="Configurações" onClick={() => open({ kind: "settings" })} />
         <Button variant="primary" icon={<LuPlus />} className="new-btn" onClick={() => open({ kind: "new" })}>NOVO LANÇAMENTO</Button>

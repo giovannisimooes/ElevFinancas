@@ -19,6 +19,7 @@ export type ModalSpec =
   | { kind: "details"; item: Item }
   | { kind: "delete"; item: Item }
   | { kind: "settings"; tab?: string }
+  | { kind: "import"; accountId?: string }
   | { kind: "confirm"; title: string; message: string; danger?: boolean; confirmLabel?: string; onConfirm: () => void };
 
 export interface Toast { id: number; text: string; tone?: "ok" | "err" | "info"; undo?: boolean }

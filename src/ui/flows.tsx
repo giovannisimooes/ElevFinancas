@@ -1,19 +1,20 @@
 // Páginas "Entradas" e "Saídas": todos os valores que entram e todas as despesas que saem,
 // separados, com resumo, filtros, ranking por categoria e a mesma tabela das outras páginas.
 import React, { useMemo, useState } from "react";
-import { LuSearch, LuPlus, LuTrendingUp, LuTrendingDown } from "./icons";
+import { LuSearch, LuPlus, LuTrendingUp, LuTrendingDown, LuFileUp } from "./icons";
 import { useApp } from "./state";
 import { Button, Empty, Segmented, Select, cls } from "./components";
 import { ItemTable } from "./table";
 import { Panel } from "./dashboard";
 import { HBars } from "./charts";
+import { MonthSelect } from "./calendar";
 import { matchesProfile, CREDIT } from "../core/engine";
 import { monthShort, monthLabel, monthOf, addMonths, lastDay } from "../core/dates";
 import { formatBRL, formatPct } from "../core/money";
 import type { Item } from "../core/types";
 
 export function FlowPage({ kind }: { kind: "income" | "expense" }) {
-  const { data, items, view, month, today, open } = useApp();
+  const { data, items, view, month, setMonth, today, open } = useApp();
   const isIn = kind === "income";
   const [q, setQ] = useState("");
   const [period, setPeriod] = useState<"month" | "year" | "all">("month");
@@ -25,8 +26,8 @@ export function FlowPage({ kind }: { kind: "income" | "expense" }) {
     const limit = lastDay(addMonths(monthOf(today), 3));
     return items.filter((i) => {
       if (i.type !== kind || i.pre || !matchesProfile(i, view)) return false;
-      if (period === "month" && i.competence !== month) return false;
-      if (period === "year" && i.competence.slice(0, 4) !== month.slice(0, 4)) return false;
+      if (period === "month" && monthOf(i.date) !== month) return false;
+      if (period === "year" && i.date.slice(0, 4) !== month.slice(0, 4)) return false;
       if (period === "all" && i.date > limit) return false;
       return true;
     });
@@ -70,8 +71,11 @@ export function FlowPage({ kind }: { kind: "income" | "expense" }) {
   return (
     <div className="page">
       <div className="page-head">
-        <div><h2>{isIn ? "Entradas" : "Saídas"}</h2><p className="muted small">{isIn ? "Todos os valores que entraram ou vão entrar para você — recebidos e a receber." : "Todas as suas despesas — pagas e a pagar, no débito e no crédito."} {periodLabel}.</p></div>
-        <Button variant="primary" icon={<LuPlus />} onClick={() => open({ kind: "tx", txType: kind })}>{isIn ? "Nova entrada" : "Nova despesa"}</Button>
+        <div><h2>{isIn ? "Entradas" : "Saídas"}</h2><p className="muted small">{isIn ? "Todos os valores que entraram ou vão entrar para você — recebidos e a receber." : "Todas as suas despesas, uma a uma — pagas e a pagar, no débito e no cartão (cada gasto no dia em que aconteceu)."} {periodLabel}.</p></div>
+        <div className="row gap wrap">
+          <Button icon={<LuFileUp />} onClick={() => open({ kind: "import" })}>Importar extrato</Button>
+          <Button variant="primary" icon={<LuPlus />} onClick={() => open({ kind: "tx", txType: kind })}>{isIn ? "Nova entrada" : "Nova despesa"}</Button>
+        </div>
       </div>
 
       <div className="stat-chips">
@@ -85,6 +89,7 @@ export function FlowPage({ kind }: { kind: "income" | "expense" }) {
 
       <div className="filters panel">
         <div className="search"><LuSearch /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder={isIn ? "Buscar cliente, descrição, categoria…" : "Buscar gasto, categoria, observação…"} /></div>
+        <MonthSelect month={month} onChange={(m) => { setMonth(m); setPeriod("month"); }} />
         <Segmented size="sm" value={period} onChange={setPeriod} options={[{ value: "month", label: monthShort(month) }, { value: "year", label: month.slice(0, 4) }, { value: "all", label: "Tudo" }]} />
         <Select value={status} onChange={setStatus} options={[{ value: "all", label: "Todos os status" }, { value: "paid", label: isIn ? "Recebidos" : "Pagos" }, { value: "pending", label: isIn ? "A receber" : "A pagar" }, { value: "overdue", label: "Atrasados" }]} />
         <Select value={cat} onChange={setCat} placeholder="Todas as categorias" options={cats} />

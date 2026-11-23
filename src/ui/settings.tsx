@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { LuPalette, LuWallet, LuDatabase, LuDownload, LuUpload, LuCheck, LuX, LuCloud, LuHardDrive, LuTriangleAlert, LuRotateCcw, LuFlaskConical, LuCopy, LuSettings, LuPlus } from "react-icons/lu";
 import { useApp, ops } from "./state";
+import { AccountsTab } from "./accounts";
+import { LuLandmark } from "./icons";
 import { Modal, Button, Segmented, Field, MoneyInput, Select, cls } from "./components";
 import { DEFAULT_CHART_COLORS, emptyData, type Settings, type Profile, type AppData } from "../core/types";
 import { makeBackup, validateBackup, mergeData, type BackupCheck, isEmptyData } from "../core/storage";
@@ -17,13 +19,14 @@ export function SettingsModal({ tab: initial }: { tab?: string }) {
     <Modal title="Configurações" icon={<LuSettings />} onClose={close} width={760}>
       <div className="settings">
         <nav className="settings-nav">
-          {[["aparencia", "Aparência", <LuPalette key="a" />], ["financeiro", "Financeiro", <LuWallet key="b" />], ["dados", "Dados e backup", <LuDatabase key="c" />]].map(([k, l, i]) => (
+          {[["aparencia", "Aparência", <LuPalette key="a" />], ["financeiro", "Financeiro", <LuWallet key="b" />], ["contas", "Contas vinculadas", <LuLandmark key="d" />], ["dados", "Dados e backup", <LuDatabase key="c" />]].map(([k, l, i]) => (
             <button key={k as string} className={cls(tab === k && "on")} onClick={() => setTab(k as string)}>{i}{l}</button>
           ))}
         </nav>
         <div className="settings-body">
           {tab === "aparencia" && <Appearance />}
           {tab === "financeiro" && <Financial />}
+          {tab === "contas" && <AccountsTab />}
           {tab === "dados" && <DataTab />}
         </div>
       </div>

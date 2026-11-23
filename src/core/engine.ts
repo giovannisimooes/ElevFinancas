@@ -146,7 +146,7 @@ function txItem(data: AppData, t: Tx, creditStatus: (c: Card, m: MonthKey) => { 
     category: t.type === "transfer" ? "Transferência entre perfis" : t.category, origin: t.origin,
     method: t.method, cardId: card ? card.id : t.cardId, profile: t.profile, toProfile: t.toProfile,
     amountCents: t.amountCents, date: t.date, competence, invoiceMonth, status, paidDate,
-    isCredit: !!card, fixed: false, notes: t.notes,
+    isCredit: !!card, fixed: false, notes: t.notes, accountId: t.accountId,
   };
 }
 

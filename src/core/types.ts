@@ -22,6 +22,8 @@ export interface Tx {
   profile: Profile;         // perfil dono (em transferências: perfil de origem)
   toProfile?: Profile;      // transferências
   notes?: string;
+  accountId?: string | null; // conta vinculada de onde veio (importação)
+  importKey?: string;        // evita importar a mesma movimentação duas vezes
   createdAt: string;
   updatedAt: string;
 }
@@ -115,8 +117,14 @@ export interface Settings {
   methods: string[];
   defaultProfile: ProfileView;
   layout?: LayoutSettings;
+  listSort?: ListSort;
+  accounts?: BankAccount[];
+  importMemory?: Record<string, string>; // estabelecimento → categoria escolhida
 }
 
+export interface BankAccount { id: string; name: string; institution: string; profile: Profile; method: string; lastImport?: string }
+export type ListSortKey = "date" | "alpha" | "amount" | "category" | "type" | "status";
+export interface ListSort { key: ListSortKey; dir: "asc" | "desc" }
 export interface NavItemCfg { id: string; label?: string; hidden?: boolean }
 export interface DashBlockCfg { id: string; span: number; height?: "sm" | "md" | "lg"; hidden?: boolean }
 export interface LayoutSettings { nav?: NavItemCfg[]; dash?: DashBlockCfg[] }
@@ -160,6 +168,7 @@ export interface Item {
   notes?: string;
   installmentNo?: number;
   installmentTotal?: number;
+  accountId?: string | null;
 }
 
 export const DEFAULT_CHART_COLORS = ["#12A150", "#0EA5E9", "#F59E0B", "#8B5CF6", "#EF4444", "#14B8A6", "#EC4899", "#64748B", "#84CC16", "#F97316"];

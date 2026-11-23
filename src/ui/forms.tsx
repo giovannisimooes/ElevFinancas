@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { LuFileUp } from "./icons";
 import { LuTrendingUp, LuTrendingDown, LuLayers, LuRepeat, LuTarget, LuArrowLeftRight, LuCreditCard, LuCheck, LuTrash2, LuPiggyBank, LuInfo } from "react-icons/lu";
 import { useApp, ops, type ModalSpec } from "./state";
 import { Modal, Field, MoneyInput, Button, Segmented, Select, KV, Progress, StatusBadge, cls, methodLabel } from "./components";
@@ -40,6 +41,7 @@ export function NewChooser() {
     { icon: <LuRepeat />, t: "Nova conta recorrente", d: "Aluguel, internet, assinaturas…", m: { kind: "recurring" }, tone: "info" },
     { icon: <LuTarget />, t: "Nova meta financeira", d: "Reserva ou meta de resultado do mês", m: { kind: "goal" }, tone: "p" },
     { icon: <LuArrowLeftRight />, t: "Transferência entre perfis", d: "Pessoal ↔ ELEV, sem virar receita", m: { kind: "tx", txType: "transfer" }, tone: "muted" },
+    { icon: <LuFileUp />, t: "Importar extrato do banco", d: "Mercado Pago e outras contas vinculadas", m: { kind: "import" }, tone: "info" },
   ];
   return (
     <Modal title="Novo lançamento" subtitle="O que você quer registrar?" onClose={close} width={620}>
@@ -525,6 +527,8 @@ export function DetailsView({ item: it0 }: { item: Item }) {
   ];
   if (it.isCredit && card) rows.push(["Fatura", `${card.name} · ${monthLabel(it.invoiceMonth!)} (vence ${formatDateBR(dateInMonth(it.invoiceMonth!, card.dueDay))})`]);
   if (it.origin) rows.push(["Origem", it.origin]);
+  const accName = it.accountId ? (data.settings.accounts || []).find((a) => a.id === it.accountId)?.name : null;
+  if (accName) rows.push(["Conta", accName]);
   if (it.source === "rec") rows.push(["Recorrência", `Mensal, todo dia ${data.recurring[it.refId]?.dueDay}`]);
   if (it.installmentNo) rows.push(["Parcela", `${it.installmentNo} de ${it.installmentTotal}`]);
   if (it.notes) rows.push(["Observações", it.notes]);
@@ -611,10 +615,12 @@ export function ModalHost() {
     case "delete": return <DeleteForm item={top.item} />;
     case "confirm": return <ConfirmDialog {...top} />;
     case "settings": return <SettingsLazy tab={top.tab} />;
+    case "import": return <ImportModal accountId={top.accountId} />;
   }
 }
 
 import { SettingsModal } from "./settings";
+import { ImportModal } from "./accounts";
 function SettingsLazy({ tab }: { tab?: string }) { return <SettingsModal tab={tab} />; }
 
 export { useMemo, monthShort };
